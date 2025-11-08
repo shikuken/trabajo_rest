@@ -21,12 +21,17 @@ export const create = async (req: Request, res: Response) => {
   if (!name) return res.status(400).json({ message: 'El nombre es requerido' });
   const db = await getDb();
   try {
+    // Ignorar id enviado por el cliente; SQLite AUTOINCREMENT generará el id
     const result = await db.run('INSERT INTO people (name, email, role) VALUES (?, ?, ?)', name, email || null, role || null);
-    await db.close();
-    res.status(201).json({ message: 'Persona creada', id: result.lastID });
+    const lastId = (result as any).lastID ?? null;
+    if (lastId === null) return res.status(500).json({ message: 'No se obtuvo id al crear la persona' });
+    const created = await db.get('SELECT * FROM people WHERE id = ?', lastId);
+    res.status(201).json(created);
   } catch (err: any) {
-    await db.close();
+    console.error('Error creando persona:', err);
     res.status(400).json({ message: err.message });
+  } finally {
+    try { await db.close(); } catch (e) { /* ignore */ }
   }
 };
 
