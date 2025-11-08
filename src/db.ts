@@ -39,9 +39,7 @@ export async function initDb() {
     title TEXT NOT NULL,
     description TEXT,
     status TEXT DEFAULT 'pending',
-    projectId INTEGER,
-    created_at DATETIME DEFAULT (datetime('now')),
-    FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE SET NULL
+    created_at DATETIME DEFAULT (datetime('now'))
   )`);
 
   await db.close();
